@@ -1,6 +1,9 @@
 #include "case.h"
 #include <string>
-#include "../../build/test.pb.h"
+#pragma warning(push)
+#pragma warning(disable: 4127)
+#include <man.pb.h>
+#pragma warning(pop)
 
 // Returns n! (the factorial of n).  For negative n, n! is defined to be 1.
 int Factorial(int n) {

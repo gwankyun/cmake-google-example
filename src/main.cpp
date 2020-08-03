@@ -1,10 +1,14 @@
 ﻿#include <string>
 #include <iostream>
 #include <glog/logging.h>
-#include "../build/test.pb.h"
+#pragma warning(push)
+#pragma warning(disable: 4127)
+#include <man.pb.h>
+#pragma warning(pop)
 
 int main(int argc, char* argv[])
 {
+    argc;
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
 
