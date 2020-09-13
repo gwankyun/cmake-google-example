@@ -29,6 +29,19 @@ find_package(benchmark REQUIRED)
 set(GTEST_ROOT "C:/Program Files (x86)/googletest-distribution")
 find_package(GTest REQUIRED)
 
+set(Boost_DIR "C:/local/boost_1_74_0/lib64-msvc-14.2/cmake/Boost-1.74.0")
+
+find_package(Boost 1.73.0 REQUIRED COMPONENTS serialization)
+
+if(Boost_FOUND)
+  cmake_print_variables(Boost_INCLUDE_DIRS)
+  cmake_print_variables(Boost_LIBRARY_DIRS)
+  cmake_print_variables(Boost_LIBRARIES)
+  cmake_print_variables(Boost_LIB_VERSION)
+else()
+  message(FATAL_ERROR "Boost not found")
+endif()
+
 cmake_print_variables(glog_FOUND)
 cmake_print_variables(Protobuf_FOUND)
 cmake_print_variables(benchmark_FOUND)
@@ -84,6 +97,9 @@ target_sources(${benchmark} PRIVATE
 target_link_libraries(${benchmark}
   benchmark::benchmark
   glog::glog
-  ${man})
-target_include_directories(${benchmark} PRIVATE build)
+  ${man}
+  Boost::serialization)
+target_include_directories(${benchmark} PRIVATE
+  build
+    include)
 target_link_options(${benchmark} PRIVATE ${link_options})
