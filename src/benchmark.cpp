@@ -7,9 +7,13 @@
 #include <man.pb.h>
 #pragma warning(pop)
 #include <sstream>
+#if USE_BOOST
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#endif // USE_BOOST
+#if USE_MSGPACK
 #include <msgpack.hpp>
+#endif // USE_MSGPACK
 
 struct Man
 {
@@ -17,6 +21,7 @@ struct Man
     std::string name;
 };
 
+#if USE_MSGPACK
 namespace msg
 {
     struct Man
@@ -26,7 +31,9 @@ namespace msg
         MSGPACK_DEFINE(age, name);
     };
 }
+#endif // USE_MSGPACK
 
+#if USE_BOOST
 namespace boost
 {
     namespace serialization
@@ -40,6 +47,7 @@ namespace boost
         }
     }
 }
+#endif // USE_BOOST
 
 static void BM_Glog(benchmark::State& state)
 {
@@ -58,10 +66,8 @@ static void BM_StringCreation(benchmark::State& state)
         std::string empty_string;
     }
 }
-// Register the function as a benchmark
 BENCHMARK(BM_StringCreation);
 
-// Define another benchmark
 static void BM_StringCopy(benchmark::State& state)
 {
     std::string x = "hello";
@@ -89,6 +95,7 @@ static void BM_Protobuf(benchmark::State& state)
 }
 BENCHMARK(BM_Protobuf);
 
+#if USE_BOOST
 static void BM_BoostSerialization(benchmark::State& state)
 {
     Man man;
@@ -109,7 +116,9 @@ static void BM_BoostSerialization(benchmark::State& state)
     }
 }
 BENCHMARK(BM_BoostSerialization);
+#endif // USE_BOOST
 
+#if USE_MSGPACK
 static void BM_Msgpack(benchmark::State& state)
 {
     msg::Man man;
@@ -131,5 +140,6 @@ static void BM_Msgpack(benchmark::State& state)
     }
 }
 BENCHMARK(BM_Msgpack);
+#endif // USE_MSGPACK
 
 BENCHMARK_MAIN();

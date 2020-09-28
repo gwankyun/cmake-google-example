@@ -33,17 +33,24 @@ find_package(benchmark REQUIRED)
 find_package(GTest REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 
-set(Boost_DIR "C:/local/boost_1_74_0/lib64-msvc-14.2/cmake/Boost-1.74.0")
+option(USE_BOOST "" ON)
+if(USE_BOOST)
+  set(Boost_DIR "C:/local/boost_1_74_0/lib64-msvc-14.2/cmake/Boost-1.74.0")
+  find_package(Boost 1.74.0 COMPONENTS serialization)
+  if(Boost_FOUND)
+    cmake_print_variables(Boost_INCLUDE_DIRS)
+    cmake_print_variables(Boost_LIBRARY_DIRS)
+    cmake_print_variables(Boost_LIBRARIES)
+    cmake_print_variables(Boost_LIB_VERSION)
+  else()
+    message(STATUS "Boost not found")
+  endif()
+endif()
 
-find_package(Boost 1.74.0 REQUIRED COMPONENTS serialization)
-
-if(Boost_FOUND)
-  cmake_print_variables(Boost_INCLUDE_DIRS)
-  cmake_print_variables(Boost_LIBRARY_DIRS)
-  cmake_print_variables(Boost_LIBRARIES)
-  cmake_print_variables(Boost_LIB_VERSION)
-else()
-  message(FATAL_ERROR "Boost not found")
+option(USE_MSGPACE "" ON)
+if(USE_MSGPACE)
+  find_package(msgpack)
+  cmake_print_variables(msgpack_FOUND)
 endif()
 
 cmake_print_variables(glog_FOUND)
@@ -133,11 +140,17 @@ target_link_libraries(${benchmark}
   benchmark::benchmark
   glog::glog
   ${man}
-  Boost::serialization)
+  $<$<BOOL:${Boost_FOUND}>:Boost::serialization>
+  $<$<BOOL:${msgpack_FOUND}>:msgpackc-static>)
 target_include_directories(${benchmark} PRIVATE
   build
     include)
 target_link_options(${benchmark} PRIVATE ${link_options})
+target_compile_definitions(${benchmark}
+  PRIVATE
+    $<$<BOOL:${msgpack_FOUND}>:USE_MSGPACK>
+    $<$<BOOL:${Boost_FOUND}>:USE_BOOST>
+)
 target_compile_options(${benchmark}
     PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:/wd4100;/wd4505;>")
 
@@ -166,28 +179,24 @@ target_compile_options(${hw_grpc}
 set(server server)
 add_executable(${server})
 target_sources(${server} PRIVATE
-  src/greeter_server.cc
-)
+  src/greeter_server.cc)
 target_link_libraries(${server}
   PUBLIC
     ${hw_proto}
-    ${hw_grpc}
-)
+    ${hw_grpc})
 target_include_directories(${server} PUBLIC build)
 set_target_properties(${server} PROPERTIES FOLDER grpc)
 target_compile_options(${server}
-    PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:/wd4127;/wd4100;>")
+    PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:/wd4127;/wd4100;/wd4099;>")
 
 set(client client)
 add_executable(${client})
 target_sources(${client} PRIVATE
-  src/greeter_client.cc
-)
+  src/greeter_client.cc)
 target_link_libraries(${client}
   PUBLIC
     ${hw_proto}
-    ${hw_grpc}
-)
+    ${hw_grpc})
 target_include_directories(${client} PUBLIC build)
 set_target_properties(${client} PROPERTIES FOLDER grpc)
 target_compile_options(${client}
